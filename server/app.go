@@ -2,8 +2,12 @@ package server
 
 import (
 	"chatapp/auth"
-	"chatapp/auth/repository/authdatabase"
-	authUsecase "chatapp/auth/usecase"
+	//"chatapp/auth/repository/authdatabase"
+	//authUsecase "chatapp/auth/usecase"
+	"chatapp/chat"
+	"chatapp/chat/delivery"
+	"chatapp/chat/repository"
+	chatUsecase "chatapp/chat/usecase"
 	"context"
 	"log"
 	"net/http"
@@ -11,6 +15,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,15 +24,19 @@ import (
 type App struct{
 	server *http.Server
 	authUC auth.UseCase
+	chatUC chat.UseCase
 }
 
 func NewApp() *App{
-	postgresDB := initPostgreDB()
+//	postgresDB := initPostgreDB()
+//	authRepos := authdatabase.NewUserRepository(postgresDB)
 
-	authRepos := authdatabase.NewUserRepository(postgresDB)
+	mongoDB := initMongoDB()
+	chatRepos := chatdatabase.NewChatRepository(mongoDB)
 
 	return &App{
-		authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
+		//authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
+		chatUC: chatUsecase.NewChatUseCase(chatRepos),
 	}
 }
 
@@ -42,7 +51,7 @@ func initMongoDB() *mongo.Database{
 }
 
 func initPostgreDB() *sqlx.DB {
-	db, err := sqlx.Connect("", "")
+	db, err := sqlx.Connect("postgres", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,9 +60,16 @@ func initPostgreDB() *sqlx.DB {
 }
 
 func (a *App) Run() error{
+	router := gin.Default()
+	
+	wsdelivery.RegisterChatHTTPWSEndpoints(router, a.chatUC)
+	
+	
+
 	a.server = &http.Server{
-		Addr: "8090",
+		Addr: ":8090",
 		MaxHeaderBytes: 1 << 20,
+		Handler: router,
 	}
 
 	go func() {

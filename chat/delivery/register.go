@@ -11,7 +11,8 @@ func RegisterChatHTTPWSEndpoints(router *gin.Engine, uc chat.UseCase) {
 
 	chat := router.Group("/chat")
 	{
-		chat.POST("/demochat", h.WSEndpoint)
+		chat.GET("/ws", h.WSEndpoint)
+		chat.GET("/page", h.ChatPage)
 	}
 
 }

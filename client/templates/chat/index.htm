@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="messages">
+        
+    </div>
+    <form id="write-message">
+        <label for="receiver">Send to:</label>
+        <input type="text" id="receiver" name="receiver"> <br>
+        <label for="message">Message:</label>
+        <input type="text" name="message" id="message"> <br>
+        <input type="button" value="Send" onclick="sendMessage()">
+    </form>
+
+    <script>
+        const ws = new WebSocket("ws://localhost:8090/chat/ws")
+        ws.onopen = function(event){
+            console.log("ws - status : connected");
+        }
+
+        
+        ws.onmessage = function(event){
+            var messages_field = document.getElementById("messages");
+            var received_msg = JSON.parse(event.data)
+
+            messages_field.innerHTML += received_msg.sender + " : " + received_msg.payload + "<br/>";
+            console.log(received_msg.sender + " : " + received_msg.payload);
+        }
+
+        ws.onerror = err =>{
+            alert("SOMETHING WENT WRONG");
+            console.log(err);
+        }
+
+        var receiver_field = document.getElementById("receiver");
+        var message_field = document.getElementById("message");
+
+        function sendMessage(){
+            var message = {
+                sender: "username",
+                receiver : receiver_field.value,
+                payload : message_field.value
+            };
+
+            ws.send(JSON.stringify(message));
+        }
+    </script>
+
+    <style>
+        #messages{
+            height: 300px;
+            width: 300px;
+        }
+    </style>
+</body>
+</html>
