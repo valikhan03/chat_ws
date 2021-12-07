@@ -2,8 +2,9 @@ package server
 
 import (
 	"chatapp/auth"
-	//"chatapp/auth/repository/authdatabase"
-	//authUsecase "chatapp/auth/usecase"
+	"chatapp/auth/delivery/http"
+	"chatapp/auth/repository/authdatabase"
+	authUsecase "chatapp/auth/usecase"
 	"chatapp/chat"
 	"chatapp/chat/delivery"
 	"chatapp/chat/repository"
@@ -17,8 +18,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/jackc/pgx/stdlib"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	
 )
 
 type App struct{
@@ -28,20 +32,21 @@ type App struct{
 }
 
 func NewApp() *App{
-//	postgresDB := initPostgreDB()
-//	authRepos := authdatabase.NewUserRepository(postgresDB)
+	postgresDB := initPostgreDB()
+	authRepos := authdatabase.NewUserRepository(postgresDB)
 
 	mongoDB := initMongoDB()
 	chatRepos := chatdatabase.NewChatRepository(mongoDB)
 
 	return &App{
-		//authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
+		authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
 		chatUC: chatUsecase.NewChatUseCase(chatRepos),
 	}
 }
 
 func initMongoDB() *mongo.Database{
-	mongo, err := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
+	configs := ReadMongoConfigs()
+	mongo, err := mongo.NewClient(options.Client().ApplyURI(configs))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,9 +56,9 @@ func initMongoDB() *mongo.Database{
 }
 
 func initPostgreDB() *sqlx.DB {
-	db, err := sqlx.Connect("postgres", "")
+	db, err := sqlx.Connect("postgres", ReadPostgresConfigs())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("init postgres: ", err)
 	}
 
 	return db
@@ -64,7 +69,9 @@ func (a *App) Run() error{
 
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
+	
 	wsdelivery.RegisterChatHTTPWSEndpoints(router, a.chatUC)
+	authhttp.RegisterAuthHTTPEndpoints(router, a.authUC)
 
 	a.server = &http.Server{
 		Addr: ":8090",
