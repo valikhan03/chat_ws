@@ -61,10 +61,10 @@ func initPostgreDB() *sqlx.DB {
 
 func (a *App) Run() error{
 	router := gin.Default()
-	
+
+	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
+
 	wsdelivery.RegisterChatHTTPWSEndpoints(router, a.chatUC)
-	
-	
 
 	a.server = &http.Server{
 		Addr: ":8090",

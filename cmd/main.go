@@ -6,6 +6,9 @@ import (
 )
 
 func main(){
+
+	
+
 	app := server.NewApp()
 	err := app.Run()
 	if err != nil{
