@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterChatHTTPWSEndpoints(router *gin.Engine, uc chat.UseCase) {
+func RegisterChatHTTPWSEndpoints(router *gin.RouterGroup, uc chat.UseCase) {
 	h := NewHandler(uc)
 
 	chat := router.Group("/chat")

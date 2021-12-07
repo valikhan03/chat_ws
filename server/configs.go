@@ -10,7 +10,7 @@ import (
 )
 
 type mongoConfs struct {
-	db_uri string `yaml:"uri"`
+	DB_URI string `yaml:"uri"`
 }
 
 func ReadMongoConfigs() string {
@@ -37,8 +37,7 @@ func ReadMongoConfigs() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	return confs.db_uri
+	return confs.DB_URI
 }
 
 type PostgresConfigs struct {
@@ -67,7 +66,7 @@ func ReadPostgresConfigs() string {
 		log.Fatal(err)
 	}
 
-	conn_str := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", confs.Host, confs.Port, confs.User, "vvv15089", confs.DBName, confs.SSLMode)
+	conn_str := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s", confs.Host, confs.Port, confs.User,  confs.DBName, confs.SSLMode, "vvv15089")
 
 	return conn_str
 }

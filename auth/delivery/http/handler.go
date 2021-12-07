@@ -46,7 +46,7 @@ type SignInInput struct {
 
 func (h *Handler) SignIn(c *gin.Context) {
 	input := new(SignInInput)
-	err := c.BindJSON(&input)
+	err := c.BindJSON(&input)	
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return

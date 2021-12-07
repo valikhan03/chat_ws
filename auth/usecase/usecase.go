@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 type AuthUseCase struct {
@@ -33,15 +34,26 @@ func NewAuthUseCase(
 	}
 }
 
-func (a *AuthUseCase) SignUp(username, email, password string) error {
+func (a *AuthUseCase) hashPasword(p string) string {
 	pwd := sha256.New()
-	pwd.Write([]byte(password))
+	pwd.Write([]byte(p))
 	pwd.Write([]byte(a.hashSalt))
+	hashPassword := fmt.Sprintf("%x", pwd.Sum(nil))
+	return hashPassword
+}
+
+func (a *AuthUseCase) SignUp(username, email, password string) error {
+
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
 
 	user := &models.User{
-		Email:     email,
+		Id:       id.String(),
+		Email:    email,
 		Username: username,
-		Password:  fmt.Sprintf("%x", pwd.Sum(nil)),
+		Password: a.hashPasword(password),
 	}
 
 	return a.userRepos.CreateUser(user)
@@ -88,13 +100,14 @@ func (a *AuthUseCase) ParseToken(accessToken string) (string, error) {
 
 	if claims, ok := token.Claims.(*tokenClaims); ok && token.Valid {
 		return claims.User_id, nil
-	}else{
+	} else {
 		return "", errors.New("Error invalid access token")
 
 	}
 }
 
 func (a *AuthUseCase) SignIn(email, password string) (string, error) {
+	password = a.hashPasword(password)
 	user, err := a.userRepos.GetUser(email, password)
 	if err != nil {
 		log.Println(err)

@@ -18,7 +18,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -56,7 +56,8 @@ func initMongoDB() *mongo.Database{
 }
 
 func initPostgreDB() *sqlx.DB {
-	db, err := sqlx.Connect("postgres", ReadPostgresConfigs())
+	
+	db, err := sqlx.Open("pgx", ReadPostgresConfigs())
 	if err != nil {
 		log.Fatal("init postgres: ", err)
 	}
@@ -70,8 +71,12 @@ func (a *App) Run() error{
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
 	
-	wsdelivery.RegisterChatHTTPWSEndpoints(router, a.chatUC)
 	authhttp.RegisterAuthHTTPEndpoints(router, a.authUC)
+	authMiddleware := authhttp.NewAuthMiddleware(a.authUC)
+
+	app := router.Group("/app", authMiddleware.Handle)
+	wsdelivery.RegisterChatHTTPWSEndpoints(app, a.chatUC)
+
 
 	a.server = &http.Server{
 		Addr: ":8090",
