@@ -66,7 +66,7 @@ func ReadPostgresConfigs() string {
 		log.Fatal(err)
 	}
 
-	conn_str := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s", confs.Host, confs.Port, confs.User,  confs.DBName, confs.SSLMode, "vvv15089")
+	conn_str := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s", confs.Host, confs.Port, confs.User,  confs.DBName, confs.SSLMode, "")
 
 	return conn_str
 }

@@ -2,7 +2,7 @@ package server
 
 import (
 	"chatapp/auth"
-	"chatapp/auth/delivery/http"
+	//"chatapp/auth/delivery/http"
 	"chatapp/auth/repository/authdatabase"
 	authUsecase "chatapp/auth/usecase"
 	"chatapp/chat"
@@ -71,11 +71,11 @@ func (a *App) Run() error{
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
 	
-	authhttp.RegisterAuthHTTPEndpoints(router, a.authUC)
-	authMiddleware := authhttp.NewAuthMiddleware(a.authUC)
+	//authhttp.RegisterAuthHTTPEndpoints(router, a.authUC)
+	//authMiddleware := authhttp.NewAuthMiddleware(a.authUC)
 
-	app := router.Group("/app", authMiddleware.Handle)
-	wsdelivery.RegisterChatHTTPWSEndpoints(app, a.chatUC)
+	api := router.Group("/api"/* authMiddleware.Handle*/)
+	wsdelivery.RegisterChatHTTPWSEndpoints(api, a.chatUC)
 
 
 	a.server = &http.Server{

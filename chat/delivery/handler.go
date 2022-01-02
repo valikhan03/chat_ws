@@ -2,7 +2,6 @@ package wsdelivery
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -38,25 +37,39 @@ func (h *Handler) WSEndpoint(c *gin.Context) {
 }
 
 func (h *Handler) messageReader(c *websocket.Conn) {
-	defer c.Close()
+	var msgCh = make(chan models.Message)
+	var errCh = make(chan error)
+
 	var msg models.Message
-	for {
-		err := c.ReadJSON(&msg)
-		if err != nil {
-			log.Println(err)
-			break
+	go func() {
+		for{
+				
+			err := c.ReadJSON(&msg)
+			if err != nil {
+				log.Println(err)
+				errCh <- err
+			}
+			msgCh <- msg
+			fmt.Println(msg)
+			//save to db
+		}		
+	}()
+		
+
+	go func(){
+		for{
+			msg := <- msgCh
+			err := c.WriteJSON(msg)
+			if err != nil{
+				log.Println(err)
+				errCh <- err
+			}
 		}
-		//h.SaveMessage(&msg)
-		fmt.Println(msg)
-		/*
-		msg_json, err := json.Marshal(msg)
-		if err != nil{
-			log.Println(err)
-		}*/
-		err = c.WriteJSON(msg)
-		if err != nil{
-			log.Println(err)
-		}
+	}()
+		
+	err := <- errCh
+	if err != nil{
+		log.Println(err)
 	}
 }
 
@@ -67,16 +80,4 @@ func (h *Handler) SaveMessage(msg *models.Message) {
 	}
 }
 
-func (h *Handler) ChatPage(c *gin.Context) {
-	tmp, err := template.ParseFiles("client/templates/chat/index.htm")
-	if err != nil {
-		log.Println(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-	}
 
-	err = tmp.Execute(c.Writer, nil)
-	if err != nil {
-		log.Println(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-	}
-}

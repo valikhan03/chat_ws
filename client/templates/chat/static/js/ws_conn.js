@@ -1,8 +1,11 @@
-const ws = new WebSocket("ws://localhost:8090/chat/ws")
+const ws = new WebSocket("ws://localhost:8090/api/chat/ws")
 ws.onopen = function(event){
     console.log("ws - status : connected");
 }
 
+ws.onclose = function(event){
+    console.log("ws closed")
+}
 
 ws.onmessage = function(event){
     var messages_field = document.getElementById("messages");
@@ -29,6 +32,7 @@ function sendMessage(){
         receiver : receiver_field.value,
         payload : message_field.value
     };
-
+    document.getElementById("write-message").reset();
+    
     ws.send(JSON.stringify(message));
 }
