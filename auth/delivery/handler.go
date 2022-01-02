@@ -1,4 +1,4 @@
-package authhttp
+package delivery
 
 import (
 	"chatapp/auth"

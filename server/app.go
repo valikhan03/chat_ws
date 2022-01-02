@@ -2,11 +2,11 @@ package server
 
 import (
 	"chatapp/auth"
-	//"chatapp/auth/delivery/http"
+	//"chatapp/auth/delivery"
 	"chatapp/auth/repository/authdatabase"
 	authUsecase "chatapp/auth/usecase"
 	"chatapp/chat"
-	"chatapp/chat/delivery"
+	wsdelivery "chatapp/chat/delivery"
 	"chatapp/chat/repository"
 	chatUsecase "chatapp/chat/usecase"
 	"context"

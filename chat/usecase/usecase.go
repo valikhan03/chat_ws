@@ -6,16 +6,16 @@ import (
 )
 
 type ChatUseCase struct{
-	repo chat.Repository
+	repository chat.Repository
 }
 
 func NewChatUseCase(rep chat.Repository) *ChatUseCase{
 	return &ChatUseCase{
-		repo: rep,
+		repository: rep,
 	}
 }
 
 func (uc *ChatUseCase) SaveMessage(msg *models.Message) error{
-	err := uc.repo.SaveMessage(msg)
+	err := uc.repository.SaveMessage(msg)
 	return err
 }

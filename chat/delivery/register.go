@@ -1,4 +1,4 @@
-package wsdelivery
+package delivery
 
 import (
 	"chatapp/chat"

@@ -1,4 +1,4 @@
-package wsdelivery
+package delivery
 
 import (
 	"fmt"
@@ -43,7 +43,6 @@ func (h *Handler) messageReader(c *websocket.Conn) {
 	var msg models.Message
 	go func() {
 		for{
-				
 			err := c.ReadJSON(&msg)
 			if err != nil {
 				log.Println(err)
