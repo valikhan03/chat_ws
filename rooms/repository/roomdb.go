@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 
@@ -25,10 +26,10 @@ func NewRoomRepository(db *mongo.Database, collection string) *RoomsRepository{
 
 
 
-func (r *RoomsRepository) NewRoom(room_id string, title string, participants []string) (string, error){
+func (r *RoomsRepository) NewRoom(room_id string, title string, owner string, participants []string) (string, error){
 	collection := r.DB.Collection(r.RoomsCollection)
 
-	res, err := collection.InsertOne(context.Background(), bson.M{"id":room_id, "title":title,"participants":bson.A{participants}})
+	res, err := collection.InsertOne(context.Background(), bson.M{"id":room_id, "title":title, "owner":owner,"participants":bson.A{participants}})
 	if err != nil{
 		log.Println(err)
 	}
@@ -70,10 +71,21 @@ func (r *RoomsRepository) DeleteRoom(room_id string) bool{
 	return true
 }
 
-func (r *RoomsRepository) AddParticipants(){
-	
+func (r *RoomsRepository) AddParticipants(room_id string, users_id []string) (bool, error){
+	collection := r.DB.Collection(r.RoomsCollection)
+	filer := options.ArrayFilters{Filters: bson.A{bson.M{"id":room_id}}}
+	update := bson.M{
+		"$push":bson.M{"participants":users_id},
+	}
+
+	_, err := collection.UpdateOne(context.Background(), filer, update)
+	if err != nil{
+		log.Println(err)
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *RoomsRepository) DeleteParticipants(){
-
+	
 }
