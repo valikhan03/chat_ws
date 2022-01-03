@@ -26,10 +26,10 @@ func NewRoomRepository(db *mongo.Database, collection string) *RoomsRepository{
 
 
 
-func (r *RoomsRepository) NewRoom(room_id string, title string, owner string, participants []string) (string, error){
+func (r *RoomsRepository) NewRoom(title string, owner string, participants []string) (string, error){
 	collection := r.DB.Collection(r.RoomsCollection)
 
-	res, err := collection.InsertOne(context.Background(), bson.M{"id":room_id, "title":title, "owner":owner,"participants":bson.A{participants}})
+	res, err := collection.InsertOne(context.Background(), bson.M{"title":title, "owner":owner,"participants":bson.A{participants}})
 	if err != nil{
 		log.Println(err)
 	}

@@ -2,13 +2,18 @@ package server
 
 import (
 	"chatapp/auth"
+	"chatapp/rooms"
 	//"chatapp/auth/delivery"
 	"chatapp/auth/repository/authdatabase"
 	authUsecase "chatapp/auth/usecase"
 	"chatapp/chat"
-	wsdelivery "chatapp/chat/delivery"
+	chatdelivery "chatapp/chat/delivery"
 	"chatapp/chat/repository"
 	chatUsecase "chatapp/chat/usecase"
+	roomsdelivery "chatapp/rooms/delivery"
+	roomsUsecase "chatapp/rooms/usecase"
+	roomsrepos "chatapp/rooms/repository"
+
 	"context"
 	"log"
 	"net/http"
@@ -17,18 +22,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/jackc/pgx"
+	"github.com/jmoiron/sqlx"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	
 )
 
 type App struct{
 	server *http.Server
 	authUC auth.UseCase
 	chatUC chat.UseCase
+	roomsUC rooms.UseCase
 }
 
 func NewApp() *App{
@@ -38,9 +43,12 @@ func NewApp() *App{
 	mongoDB := initMongoDB()
 	chatRepos := chatdatabase.NewChatRepository(mongoDB)
 
+	roomsRepos := roomsrepos.NewRoomRepository(mongoDB, "collection-name")
+
 	return &App{
 		authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
 		chatUC: chatUsecase.NewChatUseCase(chatRepos),
+		roomsUC: roomsUsecase.NewRoomsUseCase(roomsRepos),
 	}
 }
 
@@ -71,11 +79,19 @@ func (a *App) Run() error{
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
 	
-	//authhttp.RegisterAuthHTTPEndpoints(router, a.authUC)
-	//authMiddleware := authhttp.NewAuthMiddleware(a.authUC)
 
-	api := router.Group("/api"/* authMiddleware.Handle*/)
-	wsdelivery.RegisterChatHTTPWSEndpoints(api, a.chatUC)
+	
+	api := router.Group("/api" /*authMiddleware.Handle*/ )
+
+	chatHandler := chatdelivery.NewHandler(a.chatUC)
+	roomsHandler := roomsdelivery.NewHandler(a.roomsUC)
+
+	chats := api.Group("my-chats")
+	chats.GET("/", roomsHandler.GetAllRoomsList)
+	chats.GET("/:chat_id/info", roomsHandler.GetRoom)
+	chats.GET("/:chat_id", chatHandler.WSEndpoint)
+	chats.GET("/:chat_id/participants", /*GetParticipantsFunc*/)
+	chats.PUT("/:chat_id/participants/add", /*AddParticipantsFunc*/)
 
 
 	a.server = &http.Server{

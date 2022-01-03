@@ -1,0 +1,26 @@
+url/
+|
+|
+(API)
+|----POST----/sign-in
+|----POST----/sign-up
+|
+|----/api/
+|        |----GET----/my-chats  (List of all chats)
+|        |----GET----/my-chats/{chat-id}    (WS-connection)
+|        |----GET----/my-chats/{chat-id}/info   (All information about this chat(title, participants, etc.))   
+|        |----GET----/my-chats/{chat-id}/participants   (participants list)
+|        |----PUT----/my-chats/{chat-id}/participants/add (add participant)
+|        |
+|        |----POST----/create-chat  (New Chat-Room)
+|        |----DELETE----/delete-chat/{chat-id}  ()
+|        |
+|
+|
+(Pages)
+|----/sign-in----SignInPage
+|----/sign-up----SignUpPage
+|
+|----/chats----ChatsListPage
+|----/chats/{chat-id}----ChatPage
+|
