@@ -7,37 +7,15 @@ import (
 	"os"
 
 	"github.com/go-yaml/yaml"
+	"github.com/joho/godotenv"
 )
 
-type mongoConfs struct {
-	DB_URI string `yaml:"uri"`
-}
+
 
 func ReadMongoConfigs() string {
-	var confs mongoConfs
-
-	file, err := os.Open("configs/mongo.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	byteConfigData, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = yaml.Unmarshal(byteConfigData, &confs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return confs.DB_URI
+	godotenv.Load("mongo.env")
+	uri := os.Getenv("MONGO_URI")
+	return uri
 }
 
 type PostgresConfigs struct {
@@ -66,7 +44,10 @@ func ReadPostgresConfigs() string {
 		log.Fatal(err)
 	}
 
-	conn_str := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s", confs.Host, confs.Port, confs.User,  confs.DBName, confs.SSLMode, "")
+	godotenv.Load("postgres.env")
+	password := os.Getenv("POSTGRES_PASSWORD")
+
+	conn_str := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s password=%s", confs.Host, confs.Port, confs.User,  confs.DBName, confs.SSLMode, password)
 
 	return conn_str
 }

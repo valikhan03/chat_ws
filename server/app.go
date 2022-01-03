@@ -2,14 +2,14 @@ package server
 
 import (
 	"chatapp/auth"
-	"chatapp/rooms"
-	//"chatapp/auth/delivery"
-	"chatapp/auth/repository/authdatabase"
-	authUsecase "chatapp/auth/usecase"
 	"chatapp/chat"
+	"chatapp/rooms"
+	//authdelivery "chatapp/auth/delivery"
+	authUsecase "chatapp/auth/usecase"
+	authrepos "chatapp/auth/repository"
 	chatdelivery "chatapp/chat/delivery"
-	"chatapp/chat/repository"
 	chatUsecase "chatapp/chat/usecase"
+	chatrepos "chatapp/chat/repository"
 	roomsdelivery "chatapp/rooms/delivery"
 	roomsUsecase "chatapp/rooms/usecase"
 	roomsrepos "chatapp/rooms/repository"
@@ -38,10 +38,10 @@ type App struct{
 
 func NewApp() *App{
 	postgresDB := initPostgreDB()
-	authRepos := authdatabase.NewUserRepository(postgresDB)
+	authRepos := authrepos.NewUserRepository(postgresDB)
 
 	mongoDB := initMongoDB()
-	chatRepos := chatdatabase.NewChatRepository(mongoDB)
+	chatRepos := chatrepos.NewChatRepository(mongoDB)
 
 	roomsRepos := roomsrepos.NewRoomRepository(mongoDB, "collection-name")
 
@@ -78,9 +78,6 @@ func (a *App) Run() error{
 
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
-	
-
-	
 	api := router.Group("/api" /*authMiddleware.Handle*/ )
 
 	chatHandler := chatdelivery.NewHandler(a.chatUC)

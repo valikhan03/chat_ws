@@ -1,4 +1,4 @@
-package authdatabase
+package repository
 
 import (
 	"chatapp/models"
