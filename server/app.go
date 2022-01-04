@@ -4,15 +4,16 @@ import (
 	"chatapp/auth"
 	"chatapp/chat"
 	"chatapp/rooms"
+
 	//authdelivery "chatapp/auth/delivery"
-	authUsecase "chatapp/auth/usecase"
 	authrepos "chatapp/auth/repository"
+	authUsecase "chatapp/auth/usecase"
 	chatdelivery "chatapp/chat/delivery"
-	chatUsecase "chatapp/chat/usecase"
 	chatrepos "chatapp/chat/repository"
+	chatUsecase "chatapp/chat/usecase"
 	roomsdelivery "chatapp/rooms/delivery"
-	roomsUsecase "chatapp/rooms/usecase"
 	roomsrepos "chatapp/rooms/repository"
+	roomsUsecase "chatapp/rooms/usecase"
 
 	"context"
 	"log"
@@ -24,6 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -45,8 +47,12 @@ func NewApp() *App{
 
 	roomsRepos := roomsrepos.NewRoomRepository(mongoDB, "collection-name")
 
+	godotenv.Load("postgres.env")
+
+	tokenTLS := 24 * time.Hour
+
 	return &App{
-		authUC: authUsecase.NewAuthUseCase(authRepos, "xcdPO78_$hq", []byte("xpasretvbn"), 10000),
+		authUC: authUsecase.NewAuthUseCase(authRepos, os.Getenv("HASH_SALT"), []byte(os.Getenv("SIGNING_KEY")), tokenTLS),
 		chatUC: chatUsecase.NewChatUseCase(chatRepos),
 		roomsUC: roomsUsecase.NewRoomsUseCase(roomsRepos),
 	}
