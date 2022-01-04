@@ -12,10 +12,14 @@ import (
 
 
 
-func ReadMongoConfigs() string {
+func ReadMongoConfigs() map[string]string {
 	godotenv.Load("mongo.env")
 	uri := os.Getenv("MONGO_URI")
-	return uri
+	db := os.Getenv("MONGO_DB")
+
+	confs := map[string]string{"URI":uri, "DB":db}
+
+	return confs
 }
 
 type PostgresConfigs struct {

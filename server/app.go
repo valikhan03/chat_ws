@@ -45,7 +45,7 @@ func NewApp() *App{
 	mongoDB := initMongoDB()
 	chatRepos := chatrepos.NewChatRepository(mongoDB)
 
-	roomsRepos := roomsrepos.NewRoomRepository(mongoDB, "collection-name")
+	roomsRepos := roomsrepos.NewRoomRepository(mongoDB)
 
 	godotenv.Load("postgres.env")
 
@@ -60,12 +60,11 @@ func NewApp() *App{
 
 func initMongoDB() *mongo.Database{
 	configs := ReadMongoConfigs()
-	mongo, err := mongo.NewClient(options.Client().ApplyURI(configs))
+	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(configs["URI"]))
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := mongo.Database("")
-
+	db := mongoClient.Database(configs["DB"])
 	return db
 }
 
