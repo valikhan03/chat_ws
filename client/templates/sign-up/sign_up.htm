@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up</title>
+</head>
+<body>
+    <form id="sign-up-form">
+        <label for="email">Email: </label> <br>
+        <input type="text" id="email" name="email"> <br>
+        <label for="username">Username: </label> <br>
+        <input type="text" id="username" name="username"> <br>
+        <label for="password1">Password: </label> <br>
+        <input type="password" name="password1" id="password1"> <br>
+        <label for="password2">Confirm Password</label> <br> 
+        <input type="password" name="password2" id="password2"> <br>
+        <input type="button" value="Sign up" onclick="SignUp()"> <br>
+    </form>
+
+    <script>
+        var emailField = document.getElementById("email");
+        var usernameField = document.getElementById("username");
+        var passwordField1 = document.getElementById("password1");
+        var passwordField2 = document.getElementById("password2");
+
+        const url = "http://localhost:8090/sign-up"
+
+        function SignUp(){
+            if(passwordField1.value != passwordField2.value){
+                alert("Wrong Password");
+                throw new Error("Something went wrong!");
+            }
+
+            var userdata = {
+                email: emailField.value,
+                username: usernameField.value,
+                password: passwordField1.value,
+            }
+
+            fetch(url, {
+                method:"POST", 
+                body: JSON.stringify(userdata)
+            })
+            .then((response) => {
+                if(response.status == 200){
+                    alert("Signed Up !")
+                }
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+
+        }
+        
+    </script>
+
+</body>
+</html>

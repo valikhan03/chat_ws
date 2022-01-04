@@ -5,7 +5,7 @@ url/
 |----POST----/sign-in
 |----POST----/sign-up
 |
-|----/api/
+|----/api/ (authMiddleware)
 |        |----GET----/my-chats  (List of all chats)
 |        |----GET----/my-chats/{chat-id}    (WS-connection)
 |        |----GET----/my-chats/{chat-id}/info   (All information about this chat(title, participants, etc.))   
@@ -21,6 +21,7 @@ url/
 |----/sign-in----SignInPage
 |----/sign-up----SignUpPage
 |
-|----/chats----ChatsListPage
-|----/chats/{chat-id}----ChatPage
+|----/app/ (authMiddleware)
+|        |----/chats----ChatsListPage
+|        |----/chats/{chat-id}----ChatPage
 |

@@ -5,7 +5,7 @@ import (
 	"chatapp/chat"
 	"chatapp/rooms"
 
-	//authdelivery "chatapp/auth/delivery"
+	authdelivery "chatapp/auth/delivery"
 	authrepos "chatapp/auth/repository"
 	authUsecase "chatapp/auth/usecase"
 	chatdelivery "chatapp/chat/delivery"
@@ -14,6 +14,8 @@ import (
 	roomsdelivery "chatapp/rooms/delivery"
 	roomsrepos "chatapp/rooms/repository"
 	roomsUsecase "chatapp/rooms/usecase"
+
+	"chatapp/client/clienthandler"
 
 	"context"
 	"log"
@@ -81,9 +83,18 @@ func initPostgreDB() *sqlx.DB {
 func (a *App) Run() error{
 	router := gin.Default()
 
+	//serving static files
 	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
-	api := router.Group("/api" /*authMiddleware.Handle*/ )
+	//auth-api endpoints
+	authHandler := authdelivery.NewHadler(a.authUC)
+
+	router.POST("/sign-up", authHandler.SignUp)
+	router.POST("/sign-in", authHandler.SignIn)
+
+	
+	authMiddleware := authdelivery.NewAuthMiddleware(a.authUC)
+	api := router.Group("/api", authMiddleware.Handle)
 
 	chatHandler := chatdelivery.NewHandler(a.chatUC)
 	roomsHandler := roomsdelivery.NewHandler(a.roomsUC)
@@ -94,6 +105,15 @@ func (a *App) Run() error{
 	chats.GET("/:chat_id", chatHandler.WSEndpoint)
 	chats.GET("/:chat_id/participants", /*GetParticipantsFunc*/)
 	chats.PUT("/:chat_id/participants/add", /*AddParticipantsFunc*/)
+
+
+	//client browser pages 
+	router.GET("sign-up", clienthandler.SignUpPage)
+	router.GET("sign-in", clienthandler.SignInPage)
+
+	app := router.Group("app", authMiddleware.Handle)
+	app.GET("/chats", clienthandler.ChatListsPage)
+	app.GET("/chats/:chat_id", clienthandler.ChatPage)
 
 
 	a.server = &http.Server{
