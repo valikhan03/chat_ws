@@ -6,9 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"log"
 	"time"
+	"fmt"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -87,26 +87,22 @@ func (a *AuthUseCase) GenerateAuthToken(email string, password string) (string, 
 	}
 	signed_str, err := token.SignedString(key)
 	if err != nil {
-		fmt.Println(signed_str)
 		log.Println(err)
 		return "", err
 	}
 
-	fmt.Println("GEN-token: ", signed_str)
 
 	return signed_str, err
 }
 
 func (a *AuthUseCase) ParseToken(accessToken string) (string, error) {
 
-	fmt.Println("PARSE-token: ", accessToken)
 
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
 
-		fmt.Println(a.signingKey)
 		key, err := base64.URLEncoding.DecodeString(a.signingKey)
 		if err != nil {
 			log.Println(err)
@@ -126,27 +122,4 @@ func (a *AuthUseCase) ParseToken(accessToken string) (string, error) {
 		return "", errors.New("Error invalid access token")
 	}
 
-	/*
-		token, err := jwt.ParseWithClaims(access_token, &tokenClaims{}, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("Invalid signing method")
-			}
-
-			godotenv.Load("keys.env")
-			key := os.Getenv("TOKEN_KEY")
-
-			return []byte(key), nil
-		})
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		cliams, ok := token.Claims.(*tokenClaims)
-		if !ok {
-			return "", errors.New("token claims error")
-		}
-
-		return cliams.UserID, nil
-	*/
 }

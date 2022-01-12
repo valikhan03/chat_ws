@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"chatapp/auth"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -67,6 +66,5 @@ func (h *Handler) SignIn(c *gin.Context) {
 		Path:  "/",
 	}
 
-	fmt.Println("Token in cookie: ", cookie.Value)
 	http.SetCookie(c.Writer, &cookie)
 }
