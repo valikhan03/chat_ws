@@ -2,6 +2,8 @@ package delivery
 
 import (
 	"chatapp/auth"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +33,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 		return
 	}
 
-	if err := h.UseCase.SignUp( input.Username, input.Email, input.Password); err != nil {
+	if err := h.UseCase.SignUp(input.Username, input.Email, input.Password); err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -46,17 +48,25 @@ type SignInInput struct {
 
 func (h *Handler) SignIn(c *gin.Context) {
 	input := new(SignInInput)
-	err := c.BindJSON(&input)	
+	err := c.BindJSON(&input)
 	if err != nil {
+		log.Println("JSON BINDING ERROR: ", err)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	token, err := h.UseCase.SignIn(input.Email, input.Password)
+	token, err := h.UseCase.GenerateAuthToken(input.Email, input.Password)
 	if err != nil {
+		log.Println("SIGN IN ERROR: ", err)
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "invilid email or password"})
 		return
 	}
+	cookie := http.Cookie{
+		Name:  "access-token-chat-eltaev",
+		Value: token,
+		Path:  "/",
+	}
 
-	c.SetCookie("access-token", token, 1000000, "/", "localhost", false, true)
+	fmt.Println("Token in cookie: ", cookie.Value)
+	http.SetCookie(c.Writer, &cookie)
 }

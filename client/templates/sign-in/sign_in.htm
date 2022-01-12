@@ -12,37 +12,10 @@
         <input type="text" id="email" name="email"> <br>
         <label for="password">Password: </label> <br>
         <input type="password" name="password" id="password"> <br>
-        <input type="button" value="Sign up" onclick="SignIn()"> <br>
+        <input type="button" value="Sign in" onclick="SignIn()"> <br>
     </form>
 
-    <script>
-        var emailField = document.getElementById("email");
-        var passwordField = document.getElementById("password");
-
-        const url = "http://localhost:8090/sign-in"
-
-        function SignIn(){
-            var userdata = {
-                email: emailField.value,
-                password: passwordField.value,
-            }
-
-            fetch(url, {
-                method:"POST", 
-                body: JSON.stringify(userdata)
-            })
-            .then((response) => {
-                if(response.status == 200){
-                    alert("Signed In !")
-                }
-            })
-            .catch((err) => {
-                console.error(err)
-            })
-
-        }
-        
-    </script>
+    <script src="/static/sign-in/static/js/sign_in.js"></script>
 
 </body>
 </html>

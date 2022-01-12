@@ -5,6 +5,8 @@ import (
 	"chatapp/chat"
 	"chatapp/rooms"
 
+	"fmt"
+
 	authdelivery "chatapp/auth/delivery"
 	authrepos "chatapp/auth/repository"
 	authUsecase "chatapp/auth/usecase"
@@ -33,14 +35,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type App struct{
-	server *http.Server
-	authUC auth.UseCase
-	chatUC chat.UseCase
+type App struct {
+	server  *http.Server
+	authUC  auth.UseCase
+	chatUC  chat.UseCase
 	roomsUC rooms.UseCase
 }
 
-func NewApp() *App{
+func NewApp() *App {
 	postgresDB := initPostgreDB()
 	authRepos := authrepos.NewUserRepository(postgresDB)
 
@@ -50,17 +52,19 @@ func NewApp() *App{
 	roomsRepos := roomsrepos.NewRoomRepository(mongoDB)
 
 	godotenv.Load("postgres.env")
+	key := os.Getenv("SIGNING_KEY")
+	tokenTLS := 24 * 60 * 60 * time.Second
 
-	tokenTLS := 24 * time.Hour
+	fmt.Println("KEY : ", key)
 
 	return &App{
-		authUC: authUsecase.NewAuthUseCase(authRepos, os.Getenv("HASH_SALT"), []byte(os.Getenv("SIGNING_KEY")), tokenTLS),
-		chatUC: chatUsecase.NewChatUseCase(chatRepos),
+		authUC:  authUsecase.NewAuthUseCase(authRepos, os.Getenv("HASH_SALT"), key, tokenTLS),
+		chatUC:  chatUsecase.NewChatUseCase(chatRepos),
 		roomsUC: roomsUsecase.NewRoomsUseCase(roomsRepos),
 	}
 }
 
-func initMongoDB() *mongo.Database{
+func initMongoDB() *mongo.Database {
 	configs := ReadMongoConfigs()
 	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(configs["URI"]))
 	if err != nil {
@@ -71,7 +75,7 @@ func initMongoDB() *mongo.Database{
 }
 
 func initPostgreDB() *sqlx.DB {
-	
+
 	db, err := sqlx.Open("pgx", ReadPostgresConfigs())
 	if err != nil {
 		log.Fatal("init postgres: ", err)
@@ -80,11 +84,8 @@ func initPostgreDB() *sqlx.DB {
 	return db
 }
 
-func (a *App) Run() error{
+func (a *App) Run() error {
 	router := gin.Default()
-
-	//serving static files
-	router.StaticFS("/static/", http.Dir("./client/templates/chat/static/"))
 
 	//auth-api endpoints
 	authHandler := authdelivery.NewHadler(a.authUC)
@@ -92,7 +93,6 @@ func (a *App) Run() error{
 	router.POST("/sign-up", authHandler.SignUp)
 	router.POST("/sign-in", authHandler.SignIn)
 
-	
 	authMiddleware := authdelivery.NewAuthMiddleware(a.authUC)
 	api := router.Group("/api", authMiddleware.Handle)
 
@@ -103,11 +103,14 @@ func (a *App) Run() error{
 	chats.GET("/", roomsHandler.GetAllRoomsList)
 	chats.GET("/:chat_id/info", roomsHandler.GetRoom)
 	chats.GET("/:chat_id", chatHandler.WSEndpoint)
-	chats.GET("/:chat_id/participants", /*GetParticipantsFunc*/)
-	chats.PUT("/:chat_id/participants/add", /*AddParticipantsFunc*/)
+	chats.GET("/:chat_id/participants" /*GetParticipantsFunc*/)
+	chats.PUT("/:chat_id/participants/add" /*AddParticipantsFunc*/)
 
+	//client browser pages
 
-	//client browser pages 
+	//serving static files
+	router.StaticFS("/static/", http.Dir("./client/templates/"))
+
 	router.GET("sign-up", clienthandler.SignUpPage)
 	router.GET("sign-in", clienthandler.SignInPage)
 
@@ -115,11 +118,10 @@ func (a *App) Run() error{
 	app.GET("/chats", clienthandler.ChatListsPage)
 	app.GET("/chats/:chat_id", clienthandler.ChatPage)
 
-
 	a.server = &http.Server{
-		Addr: ":8090",
+		Addr:           ":8090",
 		MaxHeaderBytes: 1 << 20,
-		Handler: router,
+		Handler:        router,
 	}
 
 	go func() {

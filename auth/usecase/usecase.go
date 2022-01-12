@@ -4,6 +4,7 @@ import (
 	"chatapp/auth"
 	"chatapp/models"
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -16,21 +17,21 @@ import (
 type AuthUseCase struct {
 	userRepos  auth.UserRepository
 	hashSalt   string
-	signingKey []byte
+	signingKey string
 	expireTime time.Duration
 }
 
 func NewAuthUseCase(
 	user_repos auth.UserRepository,
 	hash_salt string,
-	signing_key []byte,
+	signing_key string,
 	tokenTLSSeconds time.Duration) *AuthUseCase {
 
 	return &AuthUseCase{
 		userRepos:  user_repos,
 		hashSalt:   hash_salt,
 		signingKey: signing_key,
-		expireTime: tokenTLSSeconds * time.Second,
+		expireTime: tokenTLSSeconds,
 	}
 }
 
@@ -64,37 +65,58 @@ type tokenClaims struct {
 	User_id string `json:"user_id"`
 }
 
-func (a *AuthUseCase) GenerateAuthToken(user_id string) (string, error) {
-
-	claims := tokenClaims{
-		jwt.StandardClaims{
-			Subject:   "authentification",
-			ExpiresAt: int64(time.Now().Add(a.expireTime).Unix()),
-			Issuer:    "auth-service",
-		},
-		user_id,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	signed_str, err := token.SignedString(a.signingKey)
+func (a *AuthUseCase) GenerateAuthToken(email string, password string) (string, error) {
+	password = a.hashPasword(password)
+	user, err := a.userRepos.GetUser(email, password)
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, &tokenClaims{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(a.expireTime).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		user.Id,
+	})
+
+	key, err := base64.URLEncoding.DecodeString(a.signingKey)
+	if err != nil {
+		log.Println(err)
+	}
+	signed_str, err := token.SignedString(key)
+	if err != nil {
+		fmt.Println(signed_str)
+		log.Println(err)
+		return "", err
+	}
+
+	fmt.Println("GEN-token: ", signed_str)
+
 	return signed_str, err
 }
 
 func (a *AuthUseCase) ParseToken(accessToken string) (string, error) {
+
+	fmt.Println("PARSE-token: ", accessToken)
+
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Invalid signing method")
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
-		return []byte(a.signingKey), nil
+
+		fmt.Println(a.signingKey)
+		key, err := base64.URLEncoding.DecodeString(a.signingKey)
+		if err != nil {
+			log.Println(err)
+		}
+
+		return key, nil
 	})
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Parse token error: ", err)
 		return "", err
 	}
 
@@ -102,22 +124,29 @@ func (a *AuthUseCase) ParseToken(accessToken string) (string, error) {
 		return claims.User_id, nil
 	} else {
 		return "", errors.New("Error invalid access token")
-
-	}
-}
-
-func (a *AuthUseCase) SignIn(email, password string) (string, error) {
-	password = a.hashPasword(password)
-	user, err := a.userRepos.GetUser(email, password)
-	if err != nil {
-		log.Println(err)
-		return "", errors.New("user not found")
 	}
 
-	accessToken, err := a.GenerateAuthToken(user.Id)
-	if err != nil {
-		log.Println(err)
-		return "", errors.New("Token generation error")
-	}
-	return accessToken, nil
+	/*
+		token, err := jwt.ParseWithClaims(access_token, &tokenClaims{}, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("Invalid signing method")
+			}
+
+			godotenv.Load("keys.env")
+			key := os.Getenv("TOKEN_KEY")
+
+			return []byte(key), nil
+		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cliams, ok := token.Claims.(*tokenClaims)
+		if !ok {
+			return "", errors.New("token claims error")
+		}
+
+		return cliams.UserID, nil
+	*/
 }

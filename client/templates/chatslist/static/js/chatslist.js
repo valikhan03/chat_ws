@@ -1,11 +1,13 @@
-const url = "http://localhost:8090/api/my-chats"
+const chatlist_url = "http://localhost:8090/api/my-chats"
 
-fetch(url, {method: "GET"})
+fetch(chatlist_url, {method: "GET"})
 .then((response)=>{
     response.json()
     .then((obj)=>{
-        for(var i=0; i<obj.length; i++)
+        
+        for(var i=0; i<obj.length; i++){
             document.getElementById("chats-list").innerHTML += "<a href='" + url + "/" + obj[i]["id"] + "'>" + obj[i]["title"] + "</a> <br/>"
+        }
     })
 })
 .catch((err)=>{
