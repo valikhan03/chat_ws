@@ -5,7 +5,7 @@ import (
 )
 
 type UseCase interface {
-	NewRoom(room models.Room) (string, error)
+	NewRoom(title string, owner string, participants []string) (string, error)
 	GetRoom(id string) models.Room
 	GetAllRoomsList(user_id string) ([]models.Room, error)
 	DeleteRoom(id string) bool

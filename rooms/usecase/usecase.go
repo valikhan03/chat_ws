@@ -17,8 +17,8 @@ func NewRoomsUseCase(rep rooms.Repository) *UseCase{
 }
 
 
-func (u *UseCase) NewRoom(room models.Room) (string, error){
-	room_id, err := u.repository.NewRoom( room.Title, room.Owner, room.Participants)
+func (u *UseCase) NewRoom(title string, owner string, participants []string) (string, error){
+	room_id, err := u.repository.NewRoom(title, owner, participants)
 	if err != nil{
 		return "", err
 	}

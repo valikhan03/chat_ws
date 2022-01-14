@@ -3,11 +3,12 @@ package repository
 import (
 	"chatapp/models"
 	"context"
+	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type RoomsRepository struct {
@@ -27,17 +28,26 @@ const (
 func (r *RoomsRepository) NewRoom(title string, owner string, participants []string) (string, error) {
 	collection := r.DB.Collection(roomsCollection)
 
-	res, err := collection.InsertOne(context.Background(), bson.M{"title": title, "owner": owner, "participants": bson.A{participants}})
+	id_gen, err := uuid.NewRandom()
 	if err != nil {
 		log.Println(err)
+		return "", err
 	}
-	return res.InsertedID.(string), err
+
+	id := id_gen.String()
+
+	_, err = collection.InsertOne(context.Background(), bson.M{"id": id, "title": title, "owner": owner, "participants": participants})
+	if err != nil {
+		log.Println("Mongo New Room Error:", err)
+	}
+
+	return id, err
 }
 
 func (r *RoomsRepository) GetRoom(room_id string) models.Room {
 	collection := r.DB.Collection(roomsCollection)
 	var room models.Room
-	res := collection.FindOne(context.Background(), bson.D{{"id", room_id}})
+	res := collection.FindOne(context.Background(), bson.M{"id": room_id})
 	res.Decode(&room)
 
 	return room
@@ -45,9 +55,13 @@ func (r *RoomsRepository) GetRoom(room_id string) models.Room {
 
 func (r *RoomsRepository) GetAllRoomsList(user_id string) ([]models.Room, error) {
 	collection := r.DB.Collection(roomsCollection)
-	cur, err := collection.Find(context.Background(), bson.M{"participants": bson.M{"$in": user_id}})
+	var participants []string
+	participants = append(participants, user_id)
+	fmt.Println(participants)
+	cur, err := collection.Find(context.Background(), bson.M{"participants": bson.M{"$all": participants}})
 	if err != nil {
 		log.Println(err)
+		return nil, err
 	}
 
 	var rooms []models.Room
@@ -55,6 +69,8 @@ func (r *RoomsRepository) GetAllRoomsList(user_id string) ([]models.Room, error)
 	if err != nil {
 		log.Println(err)
 	}
+
+	fmt.Println(rooms)
 
 	return rooms, err
 }
@@ -71,12 +87,11 @@ func (r *RoomsRepository) DeleteRoom(room_id string) bool {
 
 func (r *RoomsRepository) AddParticipants(room_id string, users_id []string) (bool, error) {
 	collection := r.DB.Collection(roomsCollection)
-	filer := options.ArrayFilters{Filters: bson.A{bson.M{"id": room_id}}}
 	update := bson.M{
 		"$push": bson.M{"participants": users_id},
 	}
 
-	_, err := collection.UpdateOne(context.Background(), filer, update)
+	_, err := collection.UpdateOne(context.Background(), bson.M{"id": room_id}, update)
 	if err != nil {
 		log.Println(err)
 		return false, err

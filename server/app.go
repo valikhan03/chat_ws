@@ -33,6 +33,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type App struct {
@@ -65,12 +66,24 @@ func NewApp() *App {
 }
 
 func initMongoDB() *mongo.Database {
-	configs := ReadMongoConfigs()
-	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(configs["URI"]))
+
+	godotenv.Load("mongo.env")
+
+	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := mongoClient.Database(configs["DB"])
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = mongoClient.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := mongoClient.Ping(context.TODO(), readpref.Primary()); err != nil {
+		log.Fatal(err)
+	}
+
+	db := mongoClient.Database(os.Getenv("MONGO_DB"))
 	return db
 }
 
@@ -97,14 +110,16 @@ func (a *App) Run() error {
 	api := router.Group("/api", authMiddleware.Handle)
 
 	chatHandler := chatdelivery.NewHandler(a.chatUC)
-	roomsHandler := roomsdelivery.NewHandler(a.roomsUC)
+	roomsHandler := roomsdelivery.NewHandler(a.roomsUC, a.authUC)
+
+	api.POST("/create-chat", roomsHandler.CreateRoom)
 
 	chats := api.Group("my-chats")
 	chats.GET("/", roomsHandler.GetAllRoomsList)
 	chats.GET("/:chat_id/info", roomsHandler.GetRoom)
 	chats.GET("/:chat_id", chatHandler.WSEndpoint)
 	chats.GET("/:chat_id/participants" /*GetParticipantsFunc*/)
-	chats.PUT("/:chat_id/participants/add" /*AddParticipantsFunc*/)
+	chats.POST("/:chat_id/participants/add", roomsHandler.AddParticipants)
 
 	//client browser pages
 

@@ -1,8 +1,8 @@
 package models
 
 type Room struct {
-	Id           string   `json:"id"`
-	Title        string   `json:"title"`
-	Owner        string   `json:"owner"`
-	Participants []string `json:"participants"`
+	Id           string   `json:"id" bson:"id"`
+	Title        string   `json:"title" bson:"title"`
+	Creator      string   `json:"owner" bson:"owner"`
+	Participants []string `json:"participants" bson:"participants"`
 }

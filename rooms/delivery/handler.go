@@ -1,28 +1,55 @@
 package delivery
 
 import (
-	"chatapp/models"
+	"chatapp/auth"
 	"chatapp/rooms"
 	"fmt"
+	"log"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	usecase rooms.UseCase
+	usecase      rooms.UseCase
+	auth_usecase auth.UseCase
 }
 
-func NewHandler(uc rooms.UseCase) *Handler {
+func NewHandler(uc rooms.UseCase, auth_uc auth.UseCase) *Handler {
 	return &Handler{
-		usecase: uc,
+		usecase:      uc,
+		auth_usecase: auth_uc,
 	}
 }
 
+type NewRoomInput struct {
+	Title        string   `json:"title"`
+	Participants []string `json:"participants"`
+}
+
 func (h *Handler) CreateRoom(c *gin.Context) {
-	var room models.Room
+	var room NewRoomInput
+	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, http.ErrNoCookie)
+		return
+	}
+	token := cookie.Value
+
+	fmt.Println(token)
+
+	user_id, err := h.auth_usecase.ParseToken(token)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 	c.BindJSON(&room)
-	room_id, err := h.usecase.NewRoom(room)
+
+	room.Participants = append(room.Participants, user_id)
+
+	room_id, err := h.usecase.NewRoom(room.Title, user_id, room.Participants)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -31,17 +58,29 @@ func (h *Handler) CreateRoom(c *gin.Context) {
 }
 
 func (h *Handler) GetRoom(c *gin.Context) {
-	var room_id string
-	c.Bind(&room_id)
+
+	room_id := c.Param("chat_id")
+
+	fmt.Println(room_id)
+
 	room := h.usecase.GetRoom(room_id)
 
 	c.JSON(200, room)
 }
 
 func (h *Handler) GetAllRoomsList(c *gin.Context) {
-	user_id := c.GetString("user_id")
+	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, http.ErrNoCookie)
+		return
+	}
+	token := cookie.Value
 
-	fmt.Println(user_id)
+	user_id, err := h.auth_usecase.ParseToken(token)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
 	rooms, err := h.usecase.GetAllRoomsList(user_id)
 	if err != nil {
@@ -50,4 +89,19 @@ func (h *Handler) GetAllRoomsList(c *gin.Context) {
 	}
 
 	c.JSON(200, rooms)
+}
+
+func (h *Handler) AddParticipants(c *gin.Context) {
+	room_id := c.Param("chat_id")
+	var participants []string
+
+	c.BindJSON(&participants)
+
+	if h.usecase.AddParticipants(room_id, participants) {
+		c.Status(http.StatusOK)
+		return
+	} else {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 }
