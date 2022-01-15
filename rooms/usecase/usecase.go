@@ -45,7 +45,6 @@ func (u *UseCase) DeleteRoom(id string) bool{
 
 func (u *UseCase) AddParticipants(room_id string, users_id []string) bool {
 	res, _ := u.repository.AddParticipants(room_id, users_id)
-	
 	return res
 }
 

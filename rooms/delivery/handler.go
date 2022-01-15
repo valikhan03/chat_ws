@@ -91,13 +91,18 @@ func (h *Handler) GetAllRoomsList(c *gin.Context) {
 	c.JSON(200, rooms)
 }
 
+type NewParticipantsInput struct {
+	Payload []string `json:"participants"`
+}
+
 func (h *Handler) AddParticipants(c *gin.Context) {
 	room_id := c.Param("chat_id")
-	var participants []string
-
+	var participants NewParticipantsInput
 	c.BindJSON(&participants)
 
-	if h.usecase.AddParticipants(room_id, participants) {
+	fmt.Println(room_id+"\n", participants.Payload)
+
+	if h.usecase.AddParticipants(room_id, participants.Payload) {
 		c.Status(http.StatusOK)
 		return
 	} else {

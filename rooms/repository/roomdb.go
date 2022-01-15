@@ -86,12 +86,11 @@ func (r *RoomsRepository) DeleteRoom(room_id string) bool {
 }
 
 func (r *RoomsRepository) AddParticipants(room_id string, users_id []string) (bool, error) {
-	collection := r.DB.Collection(roomsCollection)
-	update := bson.M{
-		"$push": bson.M{"participants": users_id},
-	}
+	fmt.Println(room_id+"\n", users_id)
 
-	_, err := collection.UpdateOne(context.Background(), bson.M{"id": room_id}, update)
+	collection := r.DB.Collection(roomsCollection)
+	update := bson.M{"$push": bson.M{"participants": bson.M{"$each": users_id}}}
+	_, err := collection.UpdateMany(context.Background(), bson.M{"id": room_id}, update)
 	if err != nil {
 		log.Println(err)
 		return false, err
