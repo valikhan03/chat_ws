@@ -15,7 +15,7 @@ func NewChatUseCase(rep chat.Repository) *ChatUseCase{
 	}
 }
 
-func (uc *ChatUseCase) SaveMessage(msg *models.Message) error{
+func (uc *ChatUseCase) SaveMessage(msg models.Message) error{
 	err := uc.repository.SaveMessage(msg)
 	return err
 }

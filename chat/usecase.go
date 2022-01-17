@@ -3,5 +3,5 @@ package chat
 import "chatapp/models"
 
 type UseCase interface {
-	SaveMessage(msg *models.Message) error
+	SaveMessage(msg models.Message) error
 }

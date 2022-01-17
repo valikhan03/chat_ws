@@ -6,7 +6,7 @@ fetch(chatlist_url, {method: "GET"})
     .then((obj)=>{
         
         for(var i=0; i<obj.length; i++){
-            document.getElementById("chats-list").innerHTML += "<a href='" + url + "/" + obj[i]["id"] + "'>" + obj[i]["title"] + "</a> <br/>"
+            document.getElementById("chats-list").innerHTML += "<a href='" + document.URL + "/" + obj[i]["id"] + "'>" + obj[i]["title"] + "</a> <br/>"
         }
     })
 })

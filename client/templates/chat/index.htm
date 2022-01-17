@@ -6,18 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
-    <link rel="stylesheet" href="/static/css/chat_page.css">
+    <link rel="stylesheet" href="/static/chat/static/css/chat_page.css">
 </head>
 <body>
     <div id="messages">
         
     </div>
     <form id="write-message">
-        <label for="receiver">Send to:</label>
-        <input type="text" id="receiver" name="receiver"> <br>
         <label for="message">Message:</label>
         <input type="text" name="message" id="message"> <br>
-        <input type="button" value="Send" onclick="sendMessage()"> 
+        <input id="send_msg" type="button" value="Send"> 
     </form>
 
     <script src="/static/chat/static/js/ws_conn.js"></script>

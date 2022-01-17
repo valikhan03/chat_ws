@@ -1,11 +1,17 @@
-const ws = new WebSocket("ws://localhost:8090/api/chat/ws")
+var chat_path = window.location.href.split('/')
+var chat_id = chat_path[chat_path.length-1]
+
+var ws_path = "ws://localhost:8090/api/my-chats/" + chat_id
+const ws = new WebSocket(ws_path)
+
 ws.onopen = function(event){
     console.log("ws - status : connected");
 }
 
-ws.onclose = function(event){
+
+/* ws.addEventListener('close', () => {
     console.log("ws closed")
-}
+}) */
 
 ws.onmessage = function(event){
     var messages_field = document.getElementById("messages");
@@ -22,17 +28,18 @@ ws.onerror = err =>{
 }
 
 
-var receiver_field = document.getElementById("receiver");
 var message_field = document.getElementById("message");
 
 
-function sendMessage(){
+document.getElementById("send_msg").addEventListener('click', () => {
+    var path = document.location.pathname;
+    var chat_id = path.substring(path.indexOf('/'), path.lastIndexOf('/'));
     var message = {
-        sender: "username",
-        receiver : receiver_field.value,
-        payload : message_field.value
+        chat_id : chat_id, 
+        payload : message_field.value,
+        date : Date.now().toString()
     };
-    document.getElementById("write-message").reset();
-    
     ws.send(JSON.stringify(message));
-}
+});
+
+

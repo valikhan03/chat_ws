@@ -3,5 +3,5 @@ package chat
 import "chatapp/models"
 
 type Repository interface {
-	SaveMessage(msg *models.Message) error
+	SaveMessage(msg models.Message) error
 }

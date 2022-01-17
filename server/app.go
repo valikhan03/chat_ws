@@ -109,7 +109,7 @@ func (a *App) Run() error {
 	authMiddleware := authdelivery.NewAuthMiddleware(a.authUC)
 	api := router.Group("/api", authMiddleware.Handle)
 
-	chatHandler := chatdelivery.NewHandler(a.chatUC)
+	chatHandler := chatdelivery.NewHandler(a.chatUC, a.authUC)
 	roomsHandler := roomsdelivery.NewHandler(a.roomsUC, a.authUC)
 
 	api.POST("/create-chat", roomsHandler.CreateRoom)
@@ -117,7 +117,8 @@ func (a *App) Run() error {
 	chats := api.Group("my-chats")
 	chats.GET("/", roomsHandler.GetAllRoomsList)
 	chats.GET("/:chat_id/info", roomsHandler.GetRoom)
-	chats.GET("/:chat_id", chatHandler.WSEndpoint)
+	chats.GET("/:chat_id", chatHandler.HandleConnections)
+	go chatHandler.HandleMessages()
 	chats.GET("/:chat_id/participants" /*GetParticipantsFunc*/)
 	chats.POST("/:chat_id/participants/add", roomsHandler.AddParticipants)
 

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"chatapp/auth"
 	"chatapp/chat"
 	"chatapp/models"
 
@@ -13,70 +14,78 @@ import (
 )
 
 type Handler struct {
-	UseCase chat.UseCase
+	UseCase     chat.UseCase
+	AuthUseCase auth.UseCase
 }
 
-func NewHandler(uc chat.UseCase) *Handler {
+func NewHandler(uc chat.UseCase, auth_uc auth.UseCase) *Handler {
 	return &Handler{
-		UseCase: uc,
+		UseCase:     uc,
+		AuthUseCase: auth_uc,
 	}
 }
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
-func (h *Handler) WSEndpoint(c *gin.Context) {
+var clients = make(map[*websocket.Conn]bool)
+var broadcaster = make(chan models.Message)
 
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+//var msg_saver = make(chan models.Message)
+
+func (h *Handler) HandleConnections(c *gin.Context) {
+	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, http.ErrNoCookie)
+		return
+	}
+	token := cookie.Value
+
+	user_id, err := h.AuthUseCase.ParseToken(token)
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(http.StatusForbidden, "connection error")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
-	h.messageReader(conn)
+	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithError(http.StatusForbidden, err)
+	}
+
+	clients[ws] = true
+
+	for {
+		var msg models.Message
+		msg.Sender = user_id
+		fmt.Println(c.Param("chat_id"))
+		err = ws.ReadJSON(&msg)
+		if err != nil {
+			log.Println(err)
+		}
+		broadcaster <- msg
+	}
 
 }
 
-func (h *Handler) messageReader(c *websocket.Conn) {
-	var msgCh = make(chan models.Message)
-	var errCh = make(chan error)
-
-	var msg models.Message
-	go func() {
-		for{
-			err := c.ReadJSON(&msg)
+func (h *Handler) HandleMessages() {
+	for {
+		msg := <-broadcaster
+		for ws_client := range clients {
+			err := ws_client.WriteJSON(&msg)
 			if err != nil {
 				log.Println(err)
-				errCh <- err
 			}
-			msgCh <- msg
-			fmt.Println(msg)
-			//save to db
-		}		
-	}()
-		
-
-	go func(){
-		for{
-			msg := <- msgCh
-			err := c.WriteJSON(msg)
-			if err != nil{
-				log.Println(err)
-				errCh <- err
-			}
+			h.SaveMessage(msg)
 		}
-	}()
-		
-	err := <- errCh
-	if err != nil{
-		log.Println(err)
 	}
 }
 
-func (h *Handler) SaveMessage(msg *models.Message) {
+func (h *Handler) SaveMessage(msg models.Message) {
 	err := h.UseCase.SaveMessage(msg)
 	if err != nil {
 		log.Println(err)
 	}
 }
-
-
