@@ -32,8 +32,6 @@ var upgrader = websocket.Upgrader{
 var clients = make(map[*websocket.Conn]bool)
 var broadcaster = make(chan models.Message)
 
-//var msg_saver = make(chan models.Message)
-
 func (h *Handler) HandleConnections(c *gin.Context) {
 	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
 	if err != nil {
@@ -58,12 +56,12 @@ func (h *Handler) HandleConnections(c *gin.Context) {
 	clients[ws] = true
 
 	for {
-		var msg models.Message
-		msg.Sender = user_id
+		var msg = models.Message{Sender: user_id}
 		fmt.Println(c.Param("chat_id"))
 		err = ws.ReadJSON(&msg)
 		if err != nil {
 			log.Println(err)
+			break
 		}
 		broadcaster <- msg
 	}

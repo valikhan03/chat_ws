@@ -1,6 +1,7 @@
 package server
 
 import (
+	"chatapp/accounts"
 	"chatapp/auth"
 	"chatapp/chat"
 	"chatapp/rooms"
@@ -10,14 +11,20 @@ import (
 	authdelivery "chatapp/auth/delivery"
 	authrepos "chatapp/auth/repository"
 	authUsecase "chatapp/auth/usecase"
+
 	chatdelivery "chatapp/chat/delivery"
 	chatrepos "chatapp/chat/repository"
 	chatUsecase "chatapp/chat/usecase"
+
 	roomsdelivery "chatapp/rooms/delivery"
 	roomsrepos "chatapp/rooms/repository"
 	roomsUsecase "chatapp/rooms/usecase"
 
-	"chatapp/client/clienthandler"
+	accountsdelivery "chatapp/accounts/delivery"
+	accountsrepos "chatapp/accounts/repository"
+	accountsUsecase "chatapp/accounts/usecase"
+
+	"chatapp/app/clienthandler"
 
 	"context"
 	"log"
@@ -37,20 +44,21 @@ import (
 )
 
 type App struct {
-	server  *http.Server
-	authUC  auth.UseCase
-	chatUC  chat.UseCase
-	roomsUC rooms.UseCase
+	server     *http.Server
+	authUC     auth.UseCase
+	chatUC     chat.UseCase
+	roomsUC    rooms.UseCase
+	accountsUC accounts.UseCase
 }
 
 func NewApp() *App {
 	postgresDB := initPostgreDB()
-	authRepos := authrepos.NewUserRepository(postgresDB)
-
 	mongoDB := initMongoDB()
-	chatRepos := chatrepos.NewChatRepository(mongoDB)
 
+	chatRepos := chatrepos.NewChatRepository(mongoDB)
+	authRepos := authrepos.NewUserRepository(postgresDB)
 	roomsRepos := roomsrepos.NewRoomRepository(mongoDB)
+	accountsRepos := accountsrepos.NewAccountsRepository(postgresDB)
 
 	godotenv.Load("postgres.env")
 	key := os.Getenv("SIGNING_KEY")
@@ -59,9 +67,10 @@ func NewApp() *App {
 	fmt.Println("KEY : ", key)
 
 	return &App{
-		authUC:  authUsecase.NewAuthUseCase(authRepos, os.Getenv("HASH_SALT"), key, tokenTLS),
-		chatUC:  chatUsecase.NewChatUseCase(chatRepos),
-		roomsUC: roomsUsecase.NewRoomsUseCase(roomsRepos),
+		authUC:     authUsecase.NewAuthUseCase(authRepos, os.Getenv("HASH_SALT"), key, tokenTLS),
+		chatUC:     chatUsecase.NewChatUseCase(chatRepos),
+		roomsUC:    roomsUsecase.NewRoomsUseCase(roomsRepos),
+		accountsUC: accountsUsecase.NewAccountsUseCase(accountsRepos),
 	}
 }
 
@@ -111,8 +120,10 @@ func (a *App) Run() error {
 
 	chatHandler := chatdelivery.NewHandler(a.chatUC, a.authUC)
 	roomsHandler := roomsdelivery.NewHandler(a.roomsUC, a.authUC)
+	accountsHandler := accountsdelivery.NewHandler(a.accountsUC)
 
-	api.POST("/create-chat", roomsHandler.CreateRoom)
+	api.POST("/create-chat/common", roomsHandler.CreateCommonRoom)
+	api.POST("/create-chat/group", roomsHandler.CreateGroupRoom)
 
 	chats := api.Group("my-chats")
 	chats.GET("/", roomsHandler.GetAllRoomsList)
@@ -122,15 +133,18 @@ func (a *App) Run() error {
 	chats.GET("/:chat_id/participants" /*GetParticipantsFunc*/)
 	chats.POST("/:chat_id/participants/add", roomsHandler.AddParticipants)
 
+	accounts := api.Group("accounts")
+	accounts.GET("/find/:user", accountsHandler.FindUser)
+
 	//client browser pages
 
 	//serving static files
-	router.StaticFS("/static/", http.Dir("./client/templates/"))
+	router.StaticFS("/static/", http.Dir("./app/templates/"))
 
 	router.GET("sign-up", clienthandler.SignUpPage)
 	router.GET("sign-in", clienthandler.SignInPage)
 
-	app := router.Group("app", authMiddleware.Handle)
+	app := router.Group("app", authMiddleware.Handle, clienthandler.CacheContolMiddleware)
 	app.GET("/chats", clienthandler.ChatListsPage)
 	app.GET("/chats/:chat_id", clienthandler.ChatPage)
 

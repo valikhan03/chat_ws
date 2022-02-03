@@ -5,7 +5,7 @@ import (
 )
 
 type Repository interface {
-	NewRoom(title string, owner string, participants []string) (string, error)
+	NewRoom(title string, owner string, participants []string, room_type string) (string, error)
 	GetRoom(room_id string) models.Room
 	GetAllRoomsList(user_id string) ([]models.Room, error)
 	DeleteRoom(room_id string) bool

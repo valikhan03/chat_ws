@@ -12,9 +12,10 @@ url/
 |        |----GET----/my-chats/{chat-id}/participants   (participants list)
 |        |----PUT----/my-chats/{chat-id}/participants/add (add participant)
 |        |
-|        |----POST----/create-chat  (New Chat-Room)
-|        |----DELETE----/delete-chat/{chat-id}  ()
-|        |
+|        |----POST----/create-chat/common  
+|        |----POST----/create-chat/group
+|        |----DELETE----/delete-chat/{chat-id} 
+|        
 |
 |
 (Pages)

@@ -28,7 +28,31 @@ type NewRoomInput struct {
 	Participants []string `json:"participants"`
 }
 
-func (h *Handler) CreateRoom(c *gin.Context) {
+type NewCommonChatInput struct {
+	ContactUser string `json:"contact_user"`
+}
+
+func (h *Handler) CreateCommonRoom(c *gin.Context) {
+	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, http.ErrNoCookie)
+		return
+	}
+	token := cookie.Value
+
+	fmt.Println(token)
+
+	user_id, err := h.auth_usecase.ParseToken(token)
+
+	var contact NewCommonChatInput
+	c.BindJSON(&contact)
+
+	room_id, err := h.usecase.NewCommonRoom(user_id, contact.ContactUser)
+
+	c.Writer.Write([]byte(room_id))
+}
+
+func (h *Handler) CreateGroupRoom(c *gin.Context) {
 	var room NewRoomInput
 	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
 	if err != nil {
@@ -49,7 +73,7 @@ func (h *Handler) CreateRoom(c *gin.Context) {
 
 	room.Participants = append(room.Participants, user_id)
 
-	room_id, err := h.usecase.NewRoom(room.Title, user_id, room.Participants)
+	room_id, err := h.usecase.NewGroupRoom(room.Title, user_id, room.Participants)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

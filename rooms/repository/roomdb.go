@@ -25,7 +25,7 @@ const (
 	roomsCollection = "rooms"
 )
 
-func (r *RoomsRepository) NewRoom(title string, owner string, participants []string) (string, error) {
+func (r *RoomsRepository) NewRoom(title string, owner string, participants []string, room_type string) (string, error) {
 	collection := r.DB.Collection(roomsCollection)
 
 	id_gen, err := uuid.NewRandom()
@@ -35,8 +35,7 @@ func (r *RoomsRepository) NewRoom(title string, owner string, participants []str
 	}
 
 	id := id_gen.String()
-
-	_, err = collection.InsertOne(context.Background(), bson.M{"id": id, "title": title, "owner": owner, "participants": participants})
+	_, err = collection.InsertOne(context.Background(), bson.M{"id": id, "title": title, "owner": owner, "participants": participants, "type":room_type})
 	if err != nil {
 		log.Println("Mongo New Room Error:", err)
 	}

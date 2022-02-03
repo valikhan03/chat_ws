@@ -5,7 +5,8 @@ import (
 )
 
 type UseCase interface {
-	NewRoom(title string, owner string, participants []string) (string, error)
+	NewGroupRoom(title string, owner string, participants []string) (string, error)
+	NewCommonRoom(contact1 string, contact2 string) (string, error)
 	GetRoom(id string) models.Room
 	GetAllRoomsList(user_id string) ([]models.Room, error)
 	DeleteRoom(id string) bool
