@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats</title>
+    <link rel="stylesheet" href="/static/chatslist/static/css/style.css">
+</head>
+<body>
+    <div>
+        <button id="create-chat-btn" onclick="div1_show()">New Chat</button>
+        <button id="create-group-chat-btn">New Group Chat</button>
+    </div>
+
+    <div id="new-private-chat-block">
+        <form class="new-private-chat-form">
+            <input id="username" type="text" placeholder="User name"> <br>
+            <input type="button" value="Start Chatting" id="start-chat-btn" onclick="startCommonChat()">
+            <input type="button" value="Close" onclick="div1_hide()">
+        </form>
+    </div>
+
+    <div id="new-group-chat-block">
+        <form>
+            <input id="chat-title" type="text" placeholder="Chat Title"> <br>
+            <input type="button" value="Start Chatting" id="start-group-chat-btn">
+            <input type="button" value="Close" onclick="div1_hide()">
+        </form>
+    </div>
+
+    <div id="chats-list">
+
+    </div>
+
+    <script src="/static/chatslist/static/js/chatslist.js"></script>
+    <script src="/static/chatslist/static/js/create_chat.js"></script>
+</body>
+</html>

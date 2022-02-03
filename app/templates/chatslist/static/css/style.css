@@ -1,0 +1,13 @@
+#new-private-chat-block {
+    max-width: 300px;
+    padding: 10px;
+    background-color: white;
+    display: none;
+}
+
+#new-group-chat-block {
+    max-width: 300px;
+    padding: 10px;
+    background-color: white;
+    display: none;
+}

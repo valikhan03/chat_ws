@@ -1,4 +1,3 @@
 mongo.env
 postgres.env
 server.env
-/app
