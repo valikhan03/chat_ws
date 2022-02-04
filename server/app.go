@@ -57,7 +57,7 @@ func NewApp() *App {
 
 	chatRepos := chatrepos.NewChatRepository(mongoDB)
 	authRepos := authrepos.NewUserRepository(postgresDB)
-	roomsRepos := roomsrepos.NewRoomRepository(mongoDB)
+	roomsRepos := roomsrepos.NewRoomRepository(mongoDB, postgresDB)
 	accountsRepos := accountsrepos.NewAccountsRepository(postgresDB)
 
 	godotenv.Load("postgres.env")

@@ -7,17 +7,20 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type RoomsRepository struct {
-	DB *mongo.Database
+	DB         *mongo.Database
+	PostgresDB *sqlx.DB
 }
 
-func NewRoomRepository(db *mongo.Database) *RoomsRepository {
+func NewRoomRepository(db *mongo.Database, sql_db *sqlx.DB) *RoomsRepository {
 	return &RoomsRepository{
-		DB: db,
+		DB:         db,
+		PostgresDB: sql_db,
 	}
 }
 
@@ -28,6 +31,12 @@ const (
 func (r *RoomsRepository) NewRoom(title string, owner string, participants []string, room_type string) (string, error) {
 	collection := r.DB.Collection(roomsCollection)
 
+	if room_type == "common" {
+		username1, _ := r.GetUsernameByID(participants[0])
+		username2, _ := r.GetUsernameByID(participants[1])
+		title = username1 + "-" + username2
+	}
+
 	id_gen, err := uuid.NewRandom()
 	if err != nil {
 		log.Println(err)
@@ -35,7 +44,7 @@ func (r *RoomsRepository) NewRoom(title string, owner string, participants []str
 	}
 
 	id := id_gen.String()
-	_, err = collection.InsertOne(context.Background(), bson.M{"id": id, "title": title, "owner": owner, "participants": participants, "type":room_type})
+	_, err = collection.InsertOne(context.Background(), bson.M{"id": id, "title": title, "owner": owner, "participants": participants, "type": room_type})
 	if err != nil {
 		log.Println("Mongo New Room Error:", err)
 	}
@@ -99,4 +108,19 @@ func (r *RoomsRepository) AddParticipants(room_id string, users_id []string) (bo
 
 func (r *RoomsRepository) DeleteParticipants() {
 
+}
+
+type userName struct {
+	username string `db:"username"`
+}
+
+func (r *RoomsRepository) GetUsernameByID(id string) (string, error) {
+	var users []string
+	err := r.PostgresDB.Select(&users, "select username from chat_users where id=$1 LIMIT 1", id)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	return users[0], nil
 }

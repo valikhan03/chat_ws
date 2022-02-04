@@ -1,24 +1,24 @@
-function div1_show() {
+function chat_form_show() {
     document.getElementById('new-private-chat-block').style.display = "block";
 }
 
-function div1_hide(){
+function chat_form_hide(){
     document.getElementById('new-private-chat-block').style.display = "none";
 }
 
-function div2_show() {
+function group_form_show() {
     document.getElementById('new-group-chat-block').style.display = "block";
 }
 
-function div2_hide(){
+function group_form_hide(){
     document.getElementById('new-group-chat-block').style.display = "none";
 }
 
 var usernameField = document.getElementById("username");
 
-let api_url = "http://localhost:8090/api/create-chat/common"
+const common_chat_url = "http://localhost:8090/api/create-chat/common"
 function createCommonChat(user_id){
-    fetch(api_url, {
+    fetch(common_chat_url, {
         method:'post',
         headers: {
             'Accept':'application/json',
@@ -40,6 +40,7 @@ function createCommonChat(user_id){
 
 //find user and get user-id by name
 let findUserURL = "http://localhost:8090/api/accounts/find/"
+
 function startCommonChat(){
     let url = findUserURL + usernameField.value;
     fetch(url)
@@ -57,5 +58,45 @@ function startCommonChat(){
 }
 
 
-var startGroupChatBtn = document.getElementById("");
+
+const group_chat_url ="http://localhost:8090/api/create-chat/group"
+
+let chatTitleField = document.getElementById("chat-title");
+let participants_list = [];
+let participantsField = document.getElementById("participants")
+function addParticipants(){
+    fetch(findUserURL + participantsField.value)
+    .then(response => response.json())
+    .then(userID => {
+        if(userID != null){
+            participants_list.push(userID);
+        }else{
+            alert("User not found!")
+        }
+    })
+    .catch((err) => {
+        console.error(err)
+    })
+    
+}
+
+function startGroupChat(){
+    let title = chatTitleField.value;
+    fetch(group_chat_url, {
+        method: "post",
+        headers: {
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            "title": title,
+            "participants":participants_list
+        })
+    })
+    .then((response) => {
+        console.log(response.status);
+    })
+    .catch((err) => {
+        console.error(err);
+    })    
+}
 

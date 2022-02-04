@@ -11,4 +11,5 @@ type Repository interface {
 	DeleteRoom(room_id string) bool
 	AddParticipants(room_id string, users_id []string) (bool, error)
 	DeleteParticipants()
+	GetUsernameByID(id string) (string, error)
 }

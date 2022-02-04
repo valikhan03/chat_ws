@@ -23,10 +23,6 @@ func NewHandler(uc rooms.UseCase, auth_uc auth.UseCase) *Handler {
 	}
 }
 
-type NewRoomInput struct {
-	Title        string   `json:"title"`
-	Participants []string `json:"participants"`
-}
 
 type NewCommonChatInput struct {
 	ContactUser string `json:"contact_user"`
@@ -52,6 +48,11 @@ func (h *Handler) CreateCommonRoom(c *gin.Context) {
 	c.Writer.Write([]byte(room_id))
 }
 
+type NewRoomInput struct {
+	Title        string   `json:"title"`
+	Participants []string `json:"participants"`
+}
+
 func (h *Handler) CreateGroupRoom(c *gin.Context) {
 	var room NewRoomInput
 	cookie, err := c.Request.Cookie("access-token-chat-eltaev")
@@ -61,8 +62,6 @@ func (h *Handler) CreateGroupRoom(c *gin.Context) {
 	}
 	token := cookie.Value
 
-	fmt.Println(token)
-
 	user_id, err := h.auth_usecase.ParseToken(token)
 	if err != nil {
 		log.Println(err)
@@ -70,7 +69,6 @@ func (h *Handler) CreateGroupRoom(c *gin.Context) {
 		return
 	}
 	c.BindJSON(&room)
-
 	room.Participants = append(room.Participants, user_id)
 
 	room_id, err := h.usecase.NewGroupRoom(room.Title, user_id, room.Participants)
