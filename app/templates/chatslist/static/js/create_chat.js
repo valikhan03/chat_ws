@@ -38,7 +38,6 @@ function createCommonChat(user_id){
     })
 }
 
-//find user and get user-id by name
 let findUserURL = "http://localhost:8090/api/accounts/find/"
 
 function startCommonChat(){

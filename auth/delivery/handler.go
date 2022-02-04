@@ -63,7 +63,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 	cookie := http.Cookie{
 		Name:  "access-token-chat-eltaev",
 		Value: token,
-		Path:  "/",
+		Path:  "http://localhost:8090/",
 	}
 
 	http.SetCookie(c.Writer, &cookie)
