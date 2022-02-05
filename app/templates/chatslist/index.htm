@@ -5,34 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chats</title>
-    <link rel="stylesheet" href="/static/chatslist/static/css/style.css">
 </head>
 <body>
-    <div>
-        <button id="create-chat-btn" onclick="chat_form_show()">New Chat</button>
-        <button id="create-group-chat-btn" onclick="group_form_show()">New Group Chat</button>
-    </div>
+    <link rel="stylesheet" href="/static/chatslist/static/css/style.css">
 
-    <div id="new-private-chat-block">
-        <form class="new-private-chat-form">
-            <input id="username" type="text" placeholder="User name"> <br>
-            <input type="button" value="Start Chatting" id="start-chat-btn" onclick="startCommonChat()">
-            <input type="button" value="Close" onclick="chat_form_hide()">
-        </form>
-    </div>
-
-    <div id="new-group-chat-block">
-        <form class="new-group-chat-form">
-            <input id="chat-title" type="text" placeholder="Chat Title"> <br>
-            <input type="text" placeholder="Participants" id="participants">
-            <input type="button" value="Add" id="add-participant-btn" onclick="addParticipants()">
-            <div id="paricicpants-list">
-
+    <div id="create-chat-block">
+        <div id="private-chat-block">
+            <button id="create-chat-btn" onclick="chat_form_show()">New Chat</button>
+            <div id="new-private-chat-block">
+                <form class="new-private-chat-form">
+                    <input id="username" type="text" placeholder="User name"> <br>
+                    <input type="button" value="Start Chatting" id="start-chat-btn" onclick="startCommonChat()">
+                    <input type="button" value="Close" onclick="chat_form_hide()">
+                </form>
             </div>
-            <input type="button" value="Start Chatting" id="start-group-chat-btn" onclick="startGroupChat()"> 
-            <input type="button" value="Close" onclick="group_form_hide()">
-        </form>
+        </div>
+        
+    
+    
+        <div id="group-chat-block">
+            <button id="create-group-chat-btn" onclick="group_form_show()">New Group Chat</button>
+            <div id="new-group-chat-block">
+                <form class="new-group-chat-form">
+                    <input id="chat-title" type="text" placeholder="Chat Title"> <br>
+                    <input type="text" placeholder="Participants" id="participants">
+                    <input type="button" value="Add" id="add-participant-btn" onclick="addParticipants()">
+                    <div id="paricicpants-list">
+        
+                    </div>
+                    <input type="button" value="Start Chatting" id="start-group-chat-btn" onclick="startGroupChat()"> 
+                    <input type="button" value="Close" onclick="group_form_hide()">
+                </form>
+            </div>
+        </div>
     </div>
+
+    
 
     <div id="chats-list">
 

@@ -3,4 +3,15 @@
     height: 300px;
     width: 300px;
     border: solid 1px black;
+    background-color: black;
+    color: white;
+}
+
+body{
+    background-color: black;
+}
+
+#chat-block{
+    margin-left: auto;
+    margin-right: auto;
 }

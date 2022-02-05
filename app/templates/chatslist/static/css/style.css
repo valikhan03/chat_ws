@@ -11,3 +11,45 @@
     background-color: white;
     display: none;
 }
+
+body{
+    background-color: black;
+}
+
+a{
+    color: white;
+    text-align: center;
+    font-size: 25px;
+}
+
+#chats-list{
+    width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#new-group-chat-block{
+    background-color: black;
+}
+
+#new-private-chat-block{
+    background-color: black;
+}
+
+#private-chat-block{
+    margin-right:50px;
+    margin-left: auto;
+    width: 180px;
+}
+
+#group-chat-block{
+    margin-right: auto;
+    margin-left: 50px;
+    width: 220px;
+}
+
+#create-chat-block{
+    display: flex;
+    width: 100%;
+    height: 150px;
+}

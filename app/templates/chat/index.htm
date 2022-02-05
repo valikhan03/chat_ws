@@ -9,14 +9,16 @@
     <link rel="stylesheet" href="/static/chat/static/css/chat_page.css">
 </head>
 <body>
-    <div id="messages">
+    <div id="chat-block">
+        <div id="messages">
         
+        </div>
+        <form id="write-message">
+            <label for="message">Message:</label>
+            <input type="text" name="message" id="message"> <br>
+            <input id="send_msg" type="button" value="Send"> 
+        </form>
     </div>
-    <form id="write-message">
-        <label for="message">Message:</label>
-        <input type="text" name="message" id="message"> <br>
-        <input id="send_msg" type="button" value="Send"> 
-    </form>
 
     <script src="/static/chat/static/js/ws_conn.js"></script>
 
