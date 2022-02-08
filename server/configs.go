@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v2"
 	"github.com/joho/godotenv"
 )
 
