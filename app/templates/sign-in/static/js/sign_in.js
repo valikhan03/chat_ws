@@ -12,11 +12,22 @@ function SignIn(){
 
     fetch(sign_in_url, {
         method:"POST", 
-        body: JSON.stringify(userdata)
+        body: JSON.stringify(userdata),
+        redirect: 'follow'
     })
     .then((response) => {
-        if(response.status == 200){
-            alert("Signed In !")
+        if(response.redirected){
+            window.location.href = response.url;
+        }
+
+        if(response.status >= 400){
+            response.json()
+            .then(res => {
+                alert(res["error"])
+            })
+            .catch(err => {
+                console.error(err);
+            }) 
         }
     })
     .catch((err) => {

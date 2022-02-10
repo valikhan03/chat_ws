@@ -67,4 +67,6 @@ func (h *Handler) SignIn(c *gin.Context) {
 	}
 
 	http.SetCookie(c.Writer, &cookie)
+
+	http.Redirect(c.Writer, c.Request, "/app/chats", http.StatusSeeOther)
 }
